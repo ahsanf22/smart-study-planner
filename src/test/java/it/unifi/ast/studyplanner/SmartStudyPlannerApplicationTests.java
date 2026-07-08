@@ -10,6 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
+@SuppressWarnings("resource")
 class SmartStudyPlannerApplicationTests {
 
 	@Container
