@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>Tasks - Smart Study Planner</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+	<header class="page-header">
+		<h1>Smart Study Planner</h1>
+		<nav>
+			<a th:href="@{/}">Home</a>
+			<a th:href="@{/categories}">Categories</a>
+			<a th:href="@{/tasks}">Tasks</a>
+		</nav>
+	</header>
+
+	<main class="container">
+		<div class="page-title">
+			<h2>Study Tasks</h2>
+			<a class="button" th:href="@{/tasks/new}">Create Task</a>
+		</div>
+
+		<form class="filters" th:action="@{/tasks}" method="get">
+			<input type="text" name="search" placeholder="Search by title" th:value="${search}">
+
+			<select name="status">
+				<option value="">All statuses</option>
+				<option th:each="status : ${statuses}"
+						th:value="${status}"
+						th:text="${status}"
+						th:selected="${status == selectedStatus}">
+				</option>
+			</select>
+
+			<select name="categoryId">
+				<option value="">All categories</option>
+				<option th:each="category : ${categories}"
+						th:value="${category.id}"
+						th:text="${category.name}"
+						th:selected="${category.id == selectedCategoryId}">
+				</option>
+			</select>
+
+			<button type="submit" class="button">Filter</button>
+			<a th:href="@{/tasks}">Clear</a>
+		</form>
+
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Title</th>
+					<th>Category</th>
+					<th>Priority</th>
+					<th>Due Date</th>
+					<th>Status</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="task : ${tasks}">
+					<td th:text="${task.title}">Task title</td>
+					<td th:text="${task.category.name}">Category</td>
+					<td>
+						<span class="badge" th:text="${task.priority}">HIGH</span>
+					</td>
+					<td th:text="${task.dueDate}">2026-07-10</td>
+					<td>
+						<span class="badge" th:text="${task.status}">PENDING</span>
+					</td>
+					<td class="actions">
+						<a th:href="@{/tasks/{id}/edit(id=${task.id})}">Edit</a>
+
+						<form th:if="${task.status.name() == 'PENDING'}"
+							  th:action="@{/tasks/{id}/complete(id=${task.id})}"
+							  method="post">
+							<button type="submit" class="link-button">Complete</button>
+						</form>
+
+						<form th:if="${task.status.name() == 'COMPLETED'}"
+							  th:action="@{/tasks/{id}/pending(id=${task.id})}"
+							  method="post">
+							<button type="submit" class="link-button">Reopen</button>
+						</form>
+
+						<form th:action="@{/tasks/{id}/delete(id=${task.id})}" method="post">
+							<button type="submit" class="link-button danger">Delete</button>
+						</form>
+					</td>
+				</tr>
+
+				<tr th:if="${#lists.isEmpty(tasks)}">
+					<td colspan="6">No tasks available yet.</td>
+				</tr>
+			</tbody>
+		</table>
+	</main>
+</body>
+</html>

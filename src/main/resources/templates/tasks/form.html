@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>Task Form - Smart Study Planner</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+	<header class="page-header">
+		<h1>Smart Study Planner</h1>
+		<nav>
+			<a th:href="@{/}">Home</a>
+			<a th:href="@{/categories}">Categories</a>
+			<a th:href="@{/tasks}">Tasks</a>
+		</nav>
+	</header>
+
+	<main class="container narrow">
+		<h2 th:text="${taskId} == null ? 'Create Task' : 'Edit Task'">Task Form</h2>
+
+		<form th:action="${taskId} == null ? @{/tasks} : @{/tasks/{id}(id=${taskId})}"
+			  th:object="${taskForm}"
+			  method="post"
+			  class="form">
+
+			<label for="title">Title</label>
+			<input id="title" type="text" th:field="*{title}">
+			<p class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></p>
+
+			<label for="description">Description</label>
+			<textarea id="description" rows="4" th:field="*{description}"></textarea>
+			<p class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+
+			<label for="priority">Priority</label>
+			<select id="priority" th:field="*{priority}">
+				<option value="">Select priority</option>
+				<option th:each="priority : ${priorities}"
+						th:value="${priority}"
+						th:text="${priority}">
+				</option>
+			</select>
+			<p class="error" th:if="${#fields.hasErrors('priority')}" th:errors="*{priority}"></p>
+
+			<label for="dueDate">Due Date</label>
+			<input id="dueDate" type="date" th:field="*{dueDate}">
+
+			<label for="categoryId">Category</label>
+			<select id="categoryId" th:field="*{categoryId}">
+				<option value="">Select category</option>
+				<option th:each="category : ${categories}"
+						th:value="${category.id}"
+						th:text="${category.name}">
+				</option>
+			</select>
+			<p class="error" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></p>
+
+			<div class="form-actions">
+				<button type="submit" class="button">Save</button>
+				<a th:href="@{/tasks}">Cancel</a>
+			</div>
+		</form>
+	</main>
+</body>
+</html>
