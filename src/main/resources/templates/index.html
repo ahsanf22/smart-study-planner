@@ -1,13 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="UTF-8">
 	<title>Smart Study Planner</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-	<main>
+	<header class="page-header">
 		<h1>Smart Study Planner</h1>
+		<nav>
+			<a th:href="@{/}">Home</a>
+			<a th:href="@{/categories}">Categories</a>
+		</nav>
+	</header>
+
+	<main class="container">
+		<h2>Welcome</h2>
 		<p>Organize study tasks, categories, priorities, and deadlines.</p>
+
+		<p>
+			Start by creating categories for your courses, subjects, or study areas.
+		</p>
+
+		<a class="button" th:href="@{/categories}">Manage Categories</a>
 	</main>
 </body>
 </html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>Category Form - Smart Study Planner</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+	<header class="page-header">
+		<h1>Smart Study Planner</h1>
+		<nav>
+			<a th:href="@{/}">Home</a>
+			<a th:href="@{/categories}">Categories</a>
+		</nav>
+	</header>
+
+	<main class="container narrow">
+		<h2 th:text="${categoryId} == null ? 'Create Category' : 'Edit Category'">Category Form</h2>
+
+		<form th:action="${categoryId} == null ? @{/categories} : @{/categories/{id}(id=${categoryId})}"
+			  th:object="${categoryForm}"
+			  method="post"
+			  class="form">
+
+			<label for="name">Name</label>
+			<input id="name" type="text" th:field="*{name}">
+			<p class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+
+			<label for="description">Description</label>
+			<textarea id="description" rows="4" th:field="*{description}"></textarea>
+			<p class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+
+			<div class="form-actions">
+				<button type="submit" class="button">Save</button>
+				<a th:href="@{/categories}">Cancel</a>
+			</div>
+		</form>
+	</main>
+</body>
+</html>
