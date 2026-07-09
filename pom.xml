@@ -114,12 +114,12 @@
 				<version>0.8.15</version>
 				<configuration>
 					<excludes>
-						<exclude>it/unifi/ast/studyplanner/SmartStudyPlannerApplication*</exclude>
-						<exclude>it/unifi/ast/studyplanner/controller/*</exclude>
-						<exclude>it/unifi/ast/studyplanner/dto/*</exclude>
-						<exclude>it/unifi/ast/studyplanner/entity/*</exclude>
-						<exclude>it/unifi/ast/studyplanner/exception/*</exclude>
-						<exclude>it/unifi/ast/studyplanner/repository/*</exclude>
+						<exclude>**/SmartStudyPlannerApplication*</exclude>
+						<exclude>**/controller/**</exclude>
+						<exclude>**/dto/**</exclude>
+						<exclude>**/entity/**</exclude>
+						<exclude>**/exception/**</exclude>
+						<exclude>**/repository/**</exclude>
 					</excludes>
 				</configuration>
 				<executions>
