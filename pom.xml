@@ -11,8 +11,8 @@
 	<groupId>it.unifi.ast</groupId>
 	<artifactId>smart-study-planner</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>smart-study-planner</name>
+	<description>Smart Study Planner web application for Automated Software Testing project</description>
 	<url/>
 	<licenses>
 		<license/>
