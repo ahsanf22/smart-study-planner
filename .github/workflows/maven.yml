@@ -10,6 +10,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,5 +27,12 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x mvnw
 
-      - name: Build and test
+      - name: Build, test, and generate coverage
         run: ./mvnw clean verify
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/site/jacoco/jacoco.xml
+          format: jacoco
