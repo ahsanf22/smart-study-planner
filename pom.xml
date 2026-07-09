@@ -84,6 +84,33 @@
 			</plugin>
 			
 			<plugin>
+	<groupId>org.pitest</groupId>
+	<artifactId>pitest-maven</artifactId>
+	<version>1.25.5</version>
+	<dependencies>
+		<dependency>
+			<groupId>org.pitest</groupId>
+			<artifactId>pitest-junit5-plugin</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+	</dependencies>
+	<configuration>
+		<targetClasses>
+			<param>it.unifi.ast.studyplanner.service.impl.*</param>
+			<param>it.unifi.ast.studyplanner.entity.*</param>
+		</targetClasses>
+		<targetTests>
+			<param>it.unifi.ast.studyplanner.service.impl.*Test</param>
+		</targetTests>
+		<outputFormats>
+			<param>HTML</param>
+			<param>XML</param>
+		</outputFormats>
+		<timestampedReports>false</timestampedReports>
+	</configuration>
+</plugin>
+			
+			<plugin>
 	<groupId>org.jacoco</groupId>
 	<artifactId>jacoco-maven-plugin</artifactId>
 	<version>0.8.15</version>

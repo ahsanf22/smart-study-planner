@@ -1,16 +1,43 @@
 # Smart Study Planner
 
-Smart Study Planner is a Spring Boot web application developed for the **Automated Software Testing** course at the University of Florence.
+Smart Study Planner is a Spring Boot web application developed for the Automated Software Testing project.
 
-The project focuses on applying professional software engineering practices, including:
+The application allows a student to organize study categories and study tasks with priorities, deadlines, and completion status. The main focus of the project is not only the web application itself, but also the testing strategy, including unit tests, web-layer tests, integration tests, Testcontainers, and code coverage.
 
-- Test-Driven Development (TDD)
-- Unit Testing
-- Integration Testing
-- End-to-End Testing
-- Continuous Integration
-- Code Coverage
-- Mutation Testing
-- Clean Architecture
+## Main Features
 
-> This project is currently under development.
+- Dashboard with task and category summary
+- Category management
+- Task management
+- Task priorities: LOW, MEDIUM, HIGH
+- Task statuses: PENDING, COMPLETED
+- Search and filter tasks
+- Form validation
+- Duplicate category handling
+- Safe prevention of deleting categories that are still used by tasks
+
+## Technology Stack
+
+- Java 21
+- Spring Boot
+- Spring MVC
+- Thymeleaf
+- Spring Data JPA
+- PostgreSQL
+- Maven
+- JUnit 5
+- Mockito
+- Testcontainers
+- JaCoCo
+- GitHub Actions
+
+## Architecture
+
+The project follows a layered architecture:
+
+```text
+Controller layer
+Service layer
+Repository layer
+Entity/domain layer
+PostgreSQL database
