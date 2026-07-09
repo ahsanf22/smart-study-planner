@@ -139,4 +139,3 @@ The architecture supports automated testing because each layer has clear respons
 - Controllers can be tested with MockMvc
 - Repositories can be tested with Testcontainers
 - Full application configuration can be checked with a Spring context test
-EOF

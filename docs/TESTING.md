@@ -181,4 +181,3 @@ The project includes:
 - PIT mutation testing
 - GitHub Actions CI
 - SonarQube Cloud workflow configuration
-EOF

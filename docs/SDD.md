@@ -605,4 +605,3 @@ Possible future enhancements include:
 - PIT Mutation Testing Documentation
 - GitHub Actions Documentation
 - SonarQube Cloud Documentation
-EOF

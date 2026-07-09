@@ -43,4 +43,3 @@ Smart Study Planner uses Spring MVC controllers and Thymeleaf templates. The app
 ## Notes
 
 The application uses server-side rendering with Thymeleaf. Form validation is handled using Jakarta Bean Validation and controller-level error handling.
-EOF
