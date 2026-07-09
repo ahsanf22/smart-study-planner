@@ -340,6 +340,19 @@ Main classes:
 - `Priority`
 - `TaskStatus`
 
+## 7.6 Architecture Diagram
+
+```mermaid
+flowchart TD
+    A[Browser / User Interface] --> B[Controller Layer]
+    B --> C[DTO / Form Layer]
+    B --> D[Service Layer]
+    D --> E[Repository Layer]
+    E --> F[(PostgreSQL Database)]
+    D --> G[Business Rules]
+    B --> H[Thymeleaf Templates]
+    ```
+    
 ---
 
 # 8. Database Design
@@ -387,6 +400,45 @@ Category 1 ---- * StudyTask
 ```
 
 One category can contain many study tasks. Each study task belongs to one category.
+
+## 8.4 Domain Model Diagram
+
+```mermaid
+classDiagram
+    class Category {
+        Long id
+        String name
+        String description
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+
+    class StudyTask {
+        Long id
+        String title
+        String description
+        Priority priority
+        TaskStatus status
+        LocalDate dueDate
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+
+    class Priority {
+        LOW
+        MEDIUM
+        HIGH
+    }
+
+    class TaskStatus {
+        PENDING
+        COMPLETED
+    }
+
+    Category "1" --> "*" StudyTask : contains
+    StudyTask --> Priority
+    StudyTask --> TaskStatus
+```
 
 ---
 
@@ -490,6 +542,25 @@ Report:
 
 ```text
 target/pit-reports/index.html
+```
+
+## 10.7 Testing Strategy Diagram
+
+```mermaid
+flowchart TD
+    A[Automated Testing Strategy] --> B[Unit Tests]
+    A --> C[Web-Layer Tests]
+    A --> D[Repository Integration Tests]
+    A --> E[Coverage Analysis]
+    A --> F[Mutation Testing]
+    A --> G[Continuous Integration]
+
+    B --> B1[JUnit 5 + Mockito]
+    C --> C1[MockMvc]
+    D --> D1[PostgreSQL Testcontainers]
+    E --> E1[JaCoCo]
+    F --> F1[PIT]
+    G --> G1[GitHub Actions]
 ```
 
 ---
