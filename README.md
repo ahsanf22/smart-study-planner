@@ -1,5 +1,6 @@
 [![Maven CI](https://github.com/ahsanf22/smart-study-planner/actions/workflows/maven.yml/badge.svg)](https://github.com/ahsanf22/smart-study-planner/actions/workflows/maven.yml)
 [![Coverage Status](https://coveralls.io/repos/github/ahsanf22/smart-study-planner/badge.svg?branch=main)](https://coveralls.io/github/ahsanf22/smart-study-planner?branch=main)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ahsanf22_smart-study-planner&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ahsanf22_smart-study-planner)
 
 # Smart Study Planner
 
