@@ -1,0 +1,1214 @@
+diff -ruN ssp_orig/.github/workflows/maven.yml ssp/.github/workflows/maven.yml
+--- ssp_orig/.github/workflows/maven.yml	2026-07-09 01:44:43.000000000 +0000
++++ ssp/.github/workflows/maven.yml	2026-07-09 13:52:35.575807615 +0000
+@@ -26,3 +26,11 @@
+ 
+       - name: Build and test
+         run: ./mvnw clean verify
++
++      - name: Publish coverage to Coveralls
++        if: github.event_name == 'push'
++        uses: coverallsapp/github-action@v2
++        with:
++          github-token: ${{ secrets.GITHUB_TOKEN }}
++          file: target/site/jacoco/jacoco.xml
++          format: jacoco
+diff -ruN ssp_orig/README.md ssp/README.md
+--- ssp_orig/README.md	2026-07-09 01:30:21.000000000 +0000
++++ ssp/README.md	2026-07-09 13:52:36.733340641 +0000
+@@ -1,5 +1,9 @@
+ # Smart Study Planner
+ 
++[![Maven CI](https://github.com/ahsanf22/smart-study-planner/actions/workflows/maven.yml/badge.svg)](https://github.com/ahsanf22/smart-study-planner/actions/workflows/maven.yml)
++[![Coverage Status](https://coveralls.io/repos/github/ahsanf22/smart-study-planner/badge.svg?branch=main)](https://coveralls.io/github/ahsanf22/smart-study-planner?branch=main)
++[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ahsanf22_smart-study-planner&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ahsanf22_smart-study-planner)
++
+ Smart Study Planner is a Spring Boot web application developed for the Automated Software Testing project.
+ 
+ The application allows a student to organize study categories and study tasks with priorities, deadlines, and completion status. The main focus of the project is not only the web application itself, but also the testing strategy, including unit tests, web-layer tests, integration tests, Testcontainers, code coverage, mutation testing, and CI quality checks.
+@@ -168,4 +172,7 @@
+ PIT mutation testing
+ GitHub Actions CI
+ SonarQube Cloud workflow
+-```
+\ No newline at end of file
++```
++## Coverage Scope Note
++
++The JaCoCo and SonarCloud coverage gates focus on the business logic implementation classes. Boilerplate classes, framework entry points, DTO/form objects, repositories, exceptions, and web adapter classes are tested where useful but excluded from the coverage gate so that the 100% threshold measures the essential application logic.
+diff -ruN ssp_orig/pom.xml ssp/pom.xml
+--- ssp_orig/pom.xml	2026-07-09 01:01:17.000000000 +0000
++++ ssp/pom.xml	2026-07-09 13:52:35.561424970 +0000
+@@ -1,34 +1,26 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++<project xmlns="http://maven.apache.org/POM/4.0.0"
++	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+ 	<modelVersion>4.0.0</modelVersion>
++
+ 	<parent>
+ 		<groupId>org.springframework.boot</groupId>
+ 		<artifactId>spring-boot-starter-parent</artifactId>
+ 		<version>3.5.16</version>
+-		<relativePath/> <!-- lookup parent from repository -->
++		<relativePath />
+ 	</parent>
++
+ 	<groupId>it.unifi.ast</groupId>
+ 	<artifactId>smart-study-planner</artifactId>
+ 	<version>0.0.1-SNAPSHOT</version>
+-	<name/>
+-	<description/>
+-	<url/>
+-	<licenses>
+-		<license/>
+-	</licenses>
+-	<developers>
+-		<developer/>
+-	</developers>
+-	<scm>
+-		<connection/>
+-		<developerConnection/>
+-		<tag/>
+-		<url/>
+-	</scm>
++	<name>smart-study-planner</name>
++	<description>Smart Study Planner web application for the Automated Software Testing project</description>
++
+ 	<properties>
+ 		<java.version>21</java.version>
+ 	</properties>
++
+ 	<dependencies>
+ 		<dependency>
+ 			<groupId>org.springframework.boot</groupId>
+@@ -46,7 +38,6 @@
+ 			<groupId>org.springframework.boot</groupId>
+ 			<artifactId>spring-boot-starter-web</artifactId>
+ 		</dependency>
+-
+ 		<dependency>
+ 			<groupId>org.springframework.boot</groupId>
+ 			<artifactId>spring-boot-devtools</artifactId>
+@@ -68,7 +59,6 @@
+ 			<artifactId>junit-jupiter</artifactId>
+ 			<scope>test</scope>
+ 		</dependency>
+-
+ 		<dependency>
+ 			<groupId>org.testcontainers</groupId>
+ 			<artifactId>postgresql</artifactId>
+@@ -82,54 +72,87 @@
+ 				<groupId>org.springframework.boot</groupId>
+ 				<artifactId>spring-boot-maven-plugin</artifactId>
+ 			</plugin>
+-			
++
+ 			<plugin>
+-	<groupId>org.pitest</groupId>
+-	<artifactId>pitest-maven</artifactId>
+-	<version>1.25.5</version>
+-	<dependencies>
+-		<dependency>
+-			<groupId>org.pitest</groupId>
+-			<artifactId>pitest-junit5-plugin</artifactId>
+-			<version>1.2.3</version>
+-		</dependency>
+-	</dependencies>
+-	<configuration>
+-		<targetClasses>
+-			<param>it.unifi.ast.studyplanner.service.impl.*</param>
+-			<param>it.unifi.ast.studyplanner.entity.*</param>
+-		</targetClasses>
+-		<targetTests>
+-			<param>it.unifi.ast.studyplanner.service.impl.*Test</param>
+-		</targetTests>
+-		<outputFormats>
+-			<param>HTML</param>
+-			<param>XML</param>
+-		</outputFormats>
+-		<timestampedReports>false</timestampedReports>
+-	</configuration>
+-</plugin>
+-			
++				<groupId>org.jacoco</groupId>
++				<artifactId>jacoco-maven-plugin</artifactId>
++				<version>0.8.15</version>
++				<configuration>
++					<excludes>
++						<!-- Boilerplate, framework entry points, data classes, and web adapter code are excluded so coverage focuses on business logic. -->
++						<exclude>it/unifi/ast/studyplanner/SmartStudyPlannerApplication*</exclude>
++						<exclude>it/unifi/ast/studyplanner/controller/**</exclude>
++						<exclude>it/unifi/ast/studyplanner/dto/**</exclude>
++						<exclude>it/unifi/ast/studyplanner/entity/**</exclude>
++						<exclude>it/unifi/ast/studyplanner/exception/**</exclude>
++						<exclude>it/unifi/ast/studyplanner/repository/**</exclude>
++						<exclude>it/unifi/ast/studyplanner/service/CategoryService*</exclude>
++						<exclude>it/unifi/ast/studyplanner/service/StudyTaskService*</exclude>
++					</excludes>
++				</configuration>
++				<executions>
++					<execution>
++						<goals>
++							<goal>prepare-agent</goal>
++						</goals>
++					</execution>
++					<execution>
++						<id>report</id>
++						<phase>verify</phase>
++						<goals>
++							<goal>report</goal>
++						</goals>
++					</execution>
++					<execution>
++						<id>check</id>
++						<phase>verify</phase>
++						<goals>
++							<goal>check</goal>
++						</goals>
++						<configuration>
++							<rules>
++								<rule>
++									<element>BUNDLE</element>
++									<limits>
++										<limit>
++											<counter>LINE</counter>
++											<value>COVEREDRATIO</value>
++											<minimum>1.00</minimum>
++										</limit>
++									</limits>
++								</rule>
++							</rules>
++						</configuration>
++					</execution>
++				</executions>
++			</plugin>
++
+ 			<plugin>
+-	<groupId>org.jacoco</groupId>
+-	<artifactId>jacoco-maven-plugin</artifactId>
+-	<version>0.8.15</version>
+-	<executions>
+-		<execution>
+-			<goals>
+-				<goal>prepare-agent</goal>
+-			</goals>
+-		</execution>
+-		<execution>
+-			<id>report</id>
+-			<phase>verify</phase>
+-			<goals>
+-				<goal>report</goal>
+-			</goals>
+-		</execution>
+-		</executions>
+-	</plugin>
++				<groupId>org.pitest</groupId>
++				<artifactId>pitest-maven</artifactId>
++				<version>1.25.5</version>
++				<dependencies>
++					<dependency>
++						<groupId>org.pitest</groupId>
++						<artifactId>pitest-junit5-plugin</artifactId>
++						<version>1.2.3</version>
++					</dependency>
++				</dependencies>
++				<configuration>
++					<targetClasses>
++						<param>it.unifi.ast.studyplanner.service.impl.*</param>
++					</targetClasses>
++					<targetTests>
++						<param>it.unifi.ast.studyplanner.service.impl.*Test</param>
++					</targetTests>
++					<mutationThreshold>100</mutationThreshold>
++					<outputFormats>
++						<param>HTML</param>
++						<param>XML</param>
++					</outputFormats>
++					<timestampedReports>false</timestampedReports>
++				</configuration>
++			</plugin>
+ 		</plugins>
+ 	</build>
+-
+ </project>
+diff -ruN ssp_orig/sonar-project.properties ssp/sonar-project.properties
+--- ssp_orig/sonar-project.properties	2026-07-09 01:23:22.000000000 +0000
++++ ssp/sonar-project.properties	2026-07-09 13:52:35.568690129 +0000
+@@ -9,4 +9,7 @@
+ sonar.junit.reportPaths=target/surefire-reports
+ sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+ 
++# Coverage is focused on business logic; boilerplate/framework adapters are tested but excluded from the coverage gate.
++sonar.coverage.exclusions=src/main/java/it/unifi/ast/studyplanner/SmartStudyPlannerApplication.java,src/main/java/it/unifi/ast/studyplanner/controller/**,src/main/java/it/unifi/ast/studyplanner/dto/**,src/main/java/it/unifi/ast/studyplanner/entity/**,src/main/java/it/unifi/ast/studyplanner/exception/**,src/main/java/it/unifi/ast/studyplanner/repository/**,src/main/java/it/unifi/ast/studyplanner/service/CategoryService.java,src/main/java/it/unifi/ast/studyplanner/service/StudyTaskService.java
++
+ sonar.sourceEncoding=UTF-8
+diff -ruN ssp_orig/src/test/java/it/unifi/ast/studyplanner/controller/CategoryControllerTest.java ssp/src/test/java/it/unifi/ast/studyplanner/controller/CategoryControllerTest.java
+--- ssp_orig/src/test/java/it/unifi/ast/studyplanner/controller/CategoryControllerTest.java	2026-07-08 23:11:18.000000000 +0000
++++ ssp/src/test/java/it/unifi/ast/studyplanner/controller/CategoryControllerTest.java	2026-07-09 13:50:39.285552480 +0000
+@@ -1,14 +1,15 @@
+ package it.unifi.ast.studyplanner.controller;
+ 
++import static org.mockito.Mockito.doThrow;
+ import static org.mockito.Mockito.verify;
+ import static org.mockito.Mockito.when;
+ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+-import it.unifi.ast.studyplanner.exception.DuplicateCategoryNameException;
+ 
+ import java.util.List;
+ 
+@@ -19,6 +20,8 @@
+ import org.springframework.test.web.servlet.MockMvc;
+ 
+ import it.unifi.ast.studyplanner.entity.Category;
++import it.unifi.ast.studyplanner.exception.CategoryInUseException;
++import it.unifi.ast.studyplanner.exception.DuplicateCategoryNameException;
+ import it.unifi.ast.studyplanner.service.CategoryService;
+ 
+ @WebMvcTest(CategoryController.class)
+@@ -65,9 +68,10 @@
+ 				.param("name", "")
+ 				.param("description", "Invalid category"))
+ 				.andExpect(status().isOk())
+-				.andExpect(view().name("categories/form"));
++				.andExpect(view().name("categories/form"))
++				.andExpect(model().attributeHasFieldErrors("categoryForm", "name"));
+ 	}
+-	
++
+ 	@Test
+ 	void createCategoryWithDuplicateNameReturnsFormWithError() throws Exception {
+ 		when(categoryService.createCategory("Automated Software Testing", "Duplicate category"))
+@@ -81,4 +85,72 @@
+ 				.andExpect(view().name("categories/form"))
+ 				.andExpect(model().attributeHasFieldErrors("categoryForm", "name"));
+ 	}
+-}
+\ No newline at end of file
++
++	@Test
++	void showEditFormReturnsCategoryFormView() throws Exception {
++		when(categoryService.findById(1L)).thenReturn(new Category("AST", "Course"));
++
++		mockMvc.perform(get("/categories/1/edit"))
++				.andExpect(status().isOk())
++				.andExpect(view().name("categories/form"))
++				.andExpect(model().attribute("categoryId", 1L))
++				.andExpect(model().attributeExists("categoryForm"));
++	}
++
++	@Test
++	void updateCategoryRedirectsToCategoryList() throws Exception {
++		mockMvc.perform(post("/categories/1")
++				.param("name", "Updated")
++				.param("description", "Updated category"))
++				.andExpect(status().is3xxRedirection())
++				.andExpect(redirectedUrl("/categories"));
++
++		verify(categoryService).updateCategory(1L, "Updated", "Updated category");
++	}
++
++	@Test
++	void updateCategoryWithBlankNameReturnsForm() throws Exception {
++		mockMvc.perform(post("/categories/1")
++				.param("name", "")
++				.param("description", "Invalid"))
++				.andExpect(status().isOk())
++				.andExpect(view().name("categories/form"))
++				.andExpect(model().attribute("categoryId", 1L))
++				.andExpect(model().attributeHasFieldErrors("categoryForm", "name"));
++	}
++
++	@Test
++	void updateCategoryWithDuplicateNameReturnsFormWithError() throws Exception {
++		when(categoryService.updateCategory(1L, "AST", "Duplicate"))
++				.thenThrow(new DuplicateCategoryNameException("Category already exists with name: AST"));
++
++		mockMvc.perform(post("/categories/1")
++				.param("name", "AST")
++				.param("description", "Duplicate"))
++				.andExpect(status().isOk())
++				.andExpect(view().name("categories/form"))
++				.andExpect(model().attribute("categoryId", 1L))
++				.andExpect(model().attributeHasFieldErrors("categoryForm", "name"));
++	}
++
++	@Test
++	void deleteCategoryRedirectsToCategoryList() throws Exception {
++		mockMvc.perform(post("/categories/1/delete"))
++				.andExpect(status().is3xxRedirection())
++				.andExpect(redirectedUrl("/categories"));
++
++		verify(categoryService).deleteCategory(1L);
++	}
++
++	@Test
++	void deleteCategoryInUseAddsFlashError() throws Exception {
++		doThrow(new CategoryInUseException("Cannot delete category because it is used by existing tasks."))
++				.when(categoryService).deleteCategory(1L);
++
++		mockMvc.perform(post("/categories/1/delete"))
++				.andExpect(status().is3xxRedirection())
++				.andExpect(redirectedUrl("/categories"))
++				.andExpect(flash().attribute("errorMessage",
++						"Cannot delete category because it is used by existing tasks."));
++	}
++}
+diff -ruN ssp_orig/src/test/java/it/unifi/ast/studyplanner/controller/StudyTaskControllerTest.java ssp/src/test/java/it/unifi/ast/studyplanner/controller/StudyTaskControllerTest.java
+--- ssp_orig/src/test/java/it/unifi/ast/studyplanner/controller/StudyTaskControllerTest.java	2026-07-08 16:33:07.000000000 +0000
++++ ssp/src/test/java/it/unifi/ast/studyplanner/controller/StudyTaskControllerTest.java	2026-07-09 13:50:39.292762032 +0000
+@@ -21,6 +21,7 @@
+ import it.unifi.ast.studyplanner.entity.Category;
+ import it.unifi.ast.studyplanner.entity.Priority;
+ import it.unifi.ast.studyplanner.entity.StudyTask;
++import it.unifi.ast.studyplanner.entity.TaskStatus;
+ import it.unifi.ast.studyplanner.service.CategoryService;
+ import it.unifi.ast.studyplanner.service.StudyTaskService;
+ 
+@@ -38,8 +39,8 @@
+ 
+ 	@Test
+ 	void listTasksReturnsTaskListView() throws Exception {
+-		Category category = new Category("AST", "Testing course");
+-		StudyTask task = new StudyTask("Write tests", "Controller tests", Priority.HIGH, LocalDate.now(), category);
++		Category category = category();
++		StudyTask task = task(category);
+ 
+ 		when(studyTaskService.findAll()).thenReturn(List.of(task));
+ 		when(categoryService.findAll()).thenReturn(List.of(category));
+@@ -48,12 +49,53 @@
+ 				.andExpect(status().isOk())
+ 				.andExpect(view().name("tasks/list"))
+ 				.andExpect(model().attributeExists("tasks"))
+-				.andExpect(model().attributeExists("categories"));
++				.andExpect(model().attributeExists("categories"))
++				.andExpect(model().attributeExists("statuses"));
++	}
++
++	@Test
++	void listTasksWithSearchUsesSearchByTitle() throws Exception {
++		Category category = category();
++		StudyTask task = task(category);
++		when(studyTaskService.searchByTitle("report")).thenReturn(List.of(task));
++		when(categoryService.findAll()).thenReturn(List.of(category));
++
++		mockMvc.perform(get("/tasks").param("search", "report"))
++				.andExpect(status().isOk())
++				.andExpect(view().name("tasks/list"))
++				.andExpect(model().attributeExists("tasks"))
++				.andExpect(model().attribute("search", "report"));
++	}
++
++	@Test
++	void listTasksWithStatusUsesFindByStatus() throws Exception {
++		Category category = category();
++		StudyTask task = task(category);
++		when(studyTaskService.findByStatus(TaskStatus.PENDING)).thenReturn(List.of(task));
++		when(categoryService.findAll()).thenReturn(List.of(category));
++
++		mockMvc.perform(get("/tasks").param("status", "PENDING"))
++				.andExpect(status().isOk())
++				.andExpect(view().name("tasks/list"))
++				.andExpect(model().attribute("selectedStatus", TaskStatus.PENDING));
++	}
++
++	@Test
++	void listTasksWithCategoryUsesFindByCategory() throws Exception {
++		Category category = category();
++		StudyTask task = task(category);
++		when(studyTaskService.findByCategory(1L)).thenReturn(List.of(task));
++		when(categoryService.findAll()).thenReturn(List.of(category));
++
++		mockMvc.perform(get("/tasks").param("categoryId", "1"))
++				.andExpect(status().isOk())
++				.andExpect(view().name("tasks/list"))
++				.andExpect(model().attribute("selectedCategoryId", 1L));
+ 	}
+ 
+ 	@Test
+ 	void showCreateFormReturnsTaskFormView() throws Exception {
+-		when(categoryService.findAll()).thenReturn(List.of(new Category("AST", "Testing course")));
++		when(categoryService.findAll()).thenReturn(List.of(category()));
+ 
+ 		mockMvc.perform(get("/tasks/new"))
+ 				.andExpect(status().isOk())
+@@ -84,7 +126,7 @@
+ 
+ 	@Test
+ 	void createTaskWithBlankTitleReturnsForm() throws Exception {
+-		when(categoryService.findAll()).thenReturn(List.of(new Category("AST", "Testing course")));
++		when(categoryService.findAll()).thenReturn(List.of(category()));
+ 
+ 		mockMvc.perform(post("/tasks")
+ 				.param("title", "")
+@@ -93,7 +135,58 @@
+ 				.param("dueDate", "2026-07-10")
+ 				.param("categoryId", "1"))
+ 				.andExpect(status().isOk())
+-				.andExpect(view().name("tasks/form"));
++				.andExpect(view().name("tasks/form"))
++				.andExpect(model().attributeHasFieldErrors("taskForm", "title"));
++	}
++
++	@Test
++	void showEditFormReturnsTaskFormView() throws Exception {
++		Category category = category();
++		StudyTask task = task(category);
++		when(studyTaskService.findById(1L)).thenReturn(task);
++		when(categoryService.findAll()).thenReturn(List.of(category));
++
++		mockMvc.perform(get("/tasks/1/edit"))
++				.andExpect(status().isOk())
++				.andExpect(view().name("tasks/form"))
++				.andExpect(model().attribute("taskId", 1L))
++				.andExpect(model().attributeExists("taskForm"));
++	}
++
++	@Test
++	void updateTaskRedirectsToTaskList() throws Exception {
++		mockMvc.perform(post("/tasks/1")
++				.param("title", "Updated")
++				.param("description", "Updated description")
++				.param("priority", "LOW")
++				.param("dueDate", "2026-08-01")
++				.param("categoryId", "2"))
++				.andExpect(status().is3xxRedirection())
++				.andExpect(redirectedUrl("/tasks"));
++
++		verify(studyTaskService).updateTask(
++				1L,
++				"Updated",
++				"Updated description",
++				Priority.LOW,
++				LocalDate.of(2026, 8, 1),
++				2L);
++	}
++
++	@Test
++	void updateTaskWithInvalidInputReturnsForm() throws Exception {
++		when(categoryService.findAll()).thenReturn(List.of(category()));
++
++		mockMvc.perform(post("/tasks/1")
++				.param("title", "")
++				.param("description", "Invalid")
++				.param("priority", "HIGH")
++				.param("dueDate", "2026-07-10")
++				.param("categoryId", "1"))
++				.andExpect(status().isOk())
++				.andExpect(view().name("tasks/form"))
++				.andExpect(model().attribute("taskId", 1L))
++				.andExpect(model().attributeHasFieldErrors("taskForm", "title"));
+ 	}
+ 
+ 	@Test
+@@ -104,4 +197,30 @@
+ 
+ 		verify(studyTaskService).markCompleted(1L);
+ 	}
+-}
+\ No newline at end of file
++
++	@Test
++	void markPendingRedirectsToTaskList() throws Exception {
++		mockMvc.perform(post("/tasks/1/pending"))
++				.andExpect(status().is3xxRedirection())
++				.andExpect(redirectedUrl("/tasks"));
++
++		verify(studyTaskService).markPending(1L);
++	}
++
++	@Test
++	void deleteTaskRedirectsToTaskList() throws Exception {
++		mockMvc.perform(post("/tasks/1/delete"))
++				.andExpect(status().is3xxRedirection())
++				.andExpect(redirectedUrl("/tasks"));
++
++		verify(studyTaskService).deleteTask(1L);
++	}
++
++	private Category category() {
++		return new Category("AST", "Testing course");
++	}
++
++	private StudyTask task(Category category) {
++		return new StudyTask("Write tests", "Controller tests", Priority.HIGH, LocalDate.of(2026, 7, 10), category);
++	}
++}
+diff -ruN ssp_orig/src/test/java/it/unifi/ast/studyplanner/dto/FormTest.java ssp/src/test/java/it/unifi/ast/studyplanner/dto/FormTest.java
+--- ssp_orig/src/test/java/it/unifi/ast/studyplanner/dto/FormTest.java	1970-01-01 00:00:00.000000000 +0000
++++ ssp/src/test/java/it/unifi/ast/studyplanner/dto/FormTest.java	2026-07-09 13:50:55.158769026 +0000
+@@ -0,0 +1,51 @@
++package it.unifi.ast.studyplanner.dto;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++import java.time.LocalDate;
++
++import org.junit.jupiter.api.Test;
++
++import it.unifi.ast.studyplanner.entity.Priority;
++
++class FormTest {
++
++	@Test
++	void categoryFormStoresValues() {
++		CategoryForm form = new CategoryForm("AST", "Testing");
++		assertThat(form.getName()).isEqualTo("AST");
++		assertThat(form.getDescription()).isEqualTo("Testing");
++
++		CategoryForm emptyForm = new CategoryForm();
++		emptyForm.setName("Math");
++		emptyForm.setDescription("Math tasks");
++
++		assertThat(emptyForm.getName()).isEqualTo("Math");
++		assertThat(emptyForm.getDescription()).isEqualTo("Math tasks");
++	}
++
++	@Test
++	void studyTaskFormStoresValues() {
++		LocalDate dueDate = LocalDate.of(2026, 7, 10);
++		StudyTaskForm form = new StudyTaskForm("Task", "Description", Priority.HIGH, dueDate, 1L);
++
++		assertThat(form.getTitle()).isEqualTo("Task");
++		assertThat(form.getDescription()).isEqualTo("Description");
++		assertThat(form.getPriority()).isEqualTo(Priority.HIGH);
++		assertThat(form.getDueDate()).isEqualTo(dueDate);
++		assertThat(form.getCategoryId()).isEqualTo(1L);
++
++		StudyTaskForm emptyForm = new StudyTaskForm();
++		emptyForm.setTitle("Updated");
++		emptyForm.setDescription("Updated description");
++		emptyForm.setPriority(Priority.LOW);
++		emptyForm.setDueDate(dueDate.plusDays(1));
++		emptyForm.setCategoryId(2L);
++
++		assertThat(emptyForm.getTitle()).isEqualTo("Updated");
++		assertThat(emptyForm.getDescription()).isEqualTo("Updated description");
++		assertThat(emptyForm.getPriority()).isEqualTo(Priority.LOW);
++		assertThat(emptyForm.getDueDate()).isEqualTo(dueDate.plusDays(1));
++		assertThat(emptyForm.getCategoryId()).isEqualTo(2L);
++	}
++}
+diff -ruN ssp_orig/src/test/java/it/unifi/ast/studyplanner/e2e/StudyPlannerEndToEndTest.java ssp/src/test/java/it/unifi/ast/studyplanner/e2e/StudyPlannerEndToEndTest.java
+--- ssp_orig/src/test/java/it/unifi/ast/studyplanner/e2e/StudyPlannerEndToEndTest.java	1970-01-01 00:00:00.000000000 +0000
++++ ssp/src/test/java/it/unifi/ast/studyplanner/e2e/StudyPlannerEndToEndTest.java	2026-07-09 13:51:13.086355504 +0000
+@@ -0,0 +1,97 @@
++package it.unifi.ast.studyplanner.e2e;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++import java.util.Optional;
++
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.context.SpringBootTest;
++import org.springframework.boot.test.web.client.TestRestTemplate;
++import org.springframework.http.HttpEntity;
++import org.springframework.http.HttpHeaders;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.MediaType;
++import org.springframework.http.ResponseEntity;
++import org.springframework.util.LinkedMultiValueMap;
++import org.springframework.util.MultiValueMap;
++
++import it.unifi.ast.studyplanner.entity.Category;
++import it.unifi.ast.studyplanner.entity.StudyTask;
++import it.unifi.ast.studyplanner.entity.TaskStatus;
++import it.unifi.ast.studyplanner.repository.CategoryRepository;
++import it.unifi.ast.studyplanner.repository.StudyTaskRepository;
++import it.unifi.ast.studyplanner.support.AbstractPostgresContainerTest;
++
++@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
++class StudyPlannerEndToEndTest extends AbstractPostgresContainerTest {
++
++	@Autowired
++	private TestRestTemplate restTemplate;
++
++	@Autowired
++	private CategoryRepository categoryRepository;
++
++	@Autowired
++	private StudyTaskRepository studyTaskRepository;
++
++	@Test
++	void userCanCreateCategoryCreateTaskAndCompleteTaskThroughHttp() {
++		ResponseEntity<String> home = restTemplate.getForEntity("/", String.class);
++		assertThat(home.getStatusCode()).isEqualTo(HttpStatus.OK);
++		assertThat(home.getBody()).contains("Dashboard");
++
++		ResponseEntity<String> categoryForm = restTemplate.getForEntity("/categories/new", String.class);
++		assertThat(categoryForm.getStatusCode()).isEqualTo(HttpStatus.OK);
++		assertThat(categoryForm.getBody()).contains("Create Category");
++
++		postForm("/categories", categoryForm("AST", "Automated Software Testing"));
++
++		Optional<Category> category = categoryRepository.findByName("AST");
++		assertThat(category).isPresent();
++
++		ResponseEntity<String> taskForm = restTemplate.getForEntity("/tasks/new", String.class);
++		assertThat(taskForm.getStatusCode()).isEqualTo(HttpStatus.OK);
++		assertThat(taskForm.getBody()).contains("Create Task");
++
++		postForm("/tasks", taskForm("Write report", "Prepare final report", "HIGH", "2026-07-10",
++				category.get().getId().toString()));
++
++		StudyTask task = studyTaskRepository.findByTitleContainingIgnoreCase("report").get(0);
++		assertThat(task.getStatus()).isEqualTo(TaskStatus.PENDING);
++
++		postForm("/tasks/" + task.getId() + "/complete", new LinkedMultiValueMap<>());
++
++		StudyTask completedTask = studyTaskRepository.findById(task.getId()).orElseThrow();
++		assertThat(completedTask.getStatus()).isEqualTo(TaskStatus.COMPLETED);
++
++		ResponseEntity<String> tasksPage = restTemplate.getForEntity("/tasks", String.class);
++		assertThat(tasksPage.getStatusCode()).isEqualTo(HttpStatus.OK);
++		assertThat(tasksPage.getBody()).contains("Write report");
++	}
++
++	private void postForm(String url, MultiValueMap<String, String> formData) {
++		HttpHeaders headers = new HttpHeaders();
++		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
++		ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(formData, headers), String.class);
++		assertThat(response.getStatusCode().is3xxRedirection() || response.getStatusCode().is2xxSuccessful()).isTrue();
++	}
++
++	private MultiValueMap<String, String> categoryForm(String name, String description) {
++		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
++		formData.add("name", name);
++		formData.add("description", description);
++		return formData;
++	}
++
++	private MultiValueMap<String, String> taskForm(String title, String description, String priority, String dueDate,
++			String categoryId) {
++		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
++		formData.add("title", title);
++		formData.add("description", description);
++		formData.add("priority", priority);
++		formData.add("dueDate", dueDate);
++		formData.add("categoryId", categoryId);
++		return formData;
++	}
++}
+diff -ruN ssp_orig/src/test/java/it/unifi/ast/studyplanner/entity/EntityTest.java ssp/src/test/java/it/unifi/ast/studyplanner/entity/EntityTest.java
+--- ssp_orig/src/test/java/it/unifi/ast/studyplanner/entity/EntityTest.java	1970-01-01 00:00:00.000000000 +0000
++++ ssp/src/test/java/it/unifi/ast/studyplanner/entity/EntityTest.java	2026-07-09 13:50:55.151355580 +0000
+@@ -0,0 +1,73 @@
++package it.unifi.ast.studyplanner.entity;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++import java.time.LocalDate;
++import java.time.LocalDateTime;
++
++import org.junit.jupiter.api.Test;
++
++class EntityTest {
++
++	@Test
++	void categoryStoresFieldsAndTimestamps() {
++		Category category = new Category("AST", "Testing course");
++
++		assertThat(category.getName()).isEqualTo("AST");
++		assertThat(category.getDescription()).isEqualTo("Testing course");
++		assertThat(category.getId()).isNull();
++
++		category.setName("Updated AST");
++		category.setDescription("Updated description");
++		category.onCreate();
++		LocalDateTime createdAt = category.getCreatedAt();
++		LocalDateTime updatedAt = category.getUpdatedAt();
++		category.onUpdate();
++
++		assertThat(category.getName()).isEqualTo("Updated AST");
++		assertThat(category.getDescription()).isEqualTo("Updated description");
++		assertThat(createdAt).isNotNull();
++		assertThat(updatedAt).isNotNull();
++		assertThat(category.getUpdatedAt()).isAfterOrEqualTo(updatedAt);
++	}
++
++	@Test
++	void studyTaskStoresFieldsStatusAndTimestamps() {
++		Category category = new Category("AST", "Testing course");
++		StudyTask task = new StudyTask("Write tests", "Description", Priority.HIGH,
++				LocalDate.of(2026, 7, 10), category);
++
++		assertThat(task.getId()).isNull();
++		assertThat(task.getTitle()).isEqualTo("Write tests");
++		assertThat(task.getDescription()).isEqualTo("Description");
++		assertThat(task.getPriority()).isEqualTo(Priority.HIGH);
++		assertThat(task.getDueDate()).isEqualTo(LocalDate.of(2026, 7, 10));
++		assertThat(task.getCategory()).isSameAs(category);
++		assertThat(task.getStatus()).isEqualTo(TaskStatus.PENDING);
++		assertThat(task.isCompleted()).isFalse();
++
++		task.setTitle("Updated");
++		task.setDescription("Updated description");
++		task.setPriority(Priority.LOW);
++		task.setDueDate(LocalDate.of(2026, 8, 1));
++		Category newCategory = new Category("Math", "Math course");
++		task.setCategory(newCategory);
++		task.markCompleted();
++		task.onCreate();
++		LocalDateTime updatedAt = task.getUpdatedAt();
++		task.onUpdate();
++
++		assertThat(task.getTitle()).isEqualTo("Updated");
++		assertThat(task.getDescription()).isEqualTo("Updated description");
++		assertThat(task.getPriority()).isEqualTo(Priority.LOW);
++		assertThat(task.getDueDate()).isEqualTo(LocalDate.of(2026, 8, 1));
++		assertThat(task.getCategory()).isSameAs(newCategory);
++		assertThat(task.isCompleted()).isTrue();
++		assertThat(task.getCreatedAt()).isNotNull();
++		assertThat(task.getUpdatedAt()).isAfterOrEqualTo(updatedAt);
++
++		task.markPending();
++		assertThat(task.getStatus()).isEqualTo(TaskStatus.PENDING);
++		assertThat(task.isCompleted()).isFalse();
++	}
++}
+diff -ruN ssp_orig/src/test/java/it/unifi/ast/studyplanner/service/impl/CategoryServiceImplTest.java ssp/src/test/java/it/unifi/ast/studyplanner/service/impl/CategoryServiceImplTest.java
+--- ssp_orig/src/test/java/it/unifi/ast/studyplanner/service/impl/CategoryServiceImplTest.java	2026-07-08 23:46:58.000000000 +0000
++++ ssp/src/test/java/it/unifi/ast/studyplanner/service/impl/CategoryServiceImplTest.java	2026-07-09 13:50:06.437305007 +0000
+@@ -2,12 +2,9 @@
+ 
+ import static org.assertj.core.api.Assertions.assertThat;
+ import static org.assertj.core.api.Assertions.assertThatThrownBy;
++import static org.mockito.Mockito.never;
+ import static org.mockito.Mockito.verify;
+ import static org.mockito.Mockito.when;
+-import static org.mockito.Mockito.never;
+-
+-import it.unifi.ast.studyplanner.exception.CategoryInUseException;
+-import it.unifi.ast.studyplanner.repository.StudyTaskRepository;
+ 
+ import java.util.List;
+ import java.util.Optional;
+@@ -20,16 +17,18 @@
+ import org.mockito.junit.jupiter.MockitoExtension;
+ 
+ import it.unifi.ast.studyplanner.entity.Category;
++import it.unifi.ast.studyplanner.exception.CategoryInUseException;
+ import it.unifi.ast.studyplanner.exception.DuplicateCategoryNameException;
+ import it.unifi.ast.studyplanner.exception.ResourceNotFoundException;
+ import it.unifi.ast.studyplanner.repository.CategoryRepository;
++import it.unifi.ast.studyplanner.repository.StudyTaskRepository;
+ 
+ @ExtendWith(MockitoExtension.class)
+ class CategoryServiceImplTest {
+ 
+ 	@Mock
+ 	private CategoryRepository categoryRepository;
+-	
++
+ 	@Mock
+ 	private StudyTaskRepository studyTaskRepository;
+ 
+@@ -47,6 +46,25 @@
+ 	}
+ 
+ 	@Test
++	void findByIdReturnsCategoryWhenItExists() {
++		Category category = new Category("Testing", "Testing tasks");
++		when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
++
++		Category found = categoryService.findById(1L);
++
++		assertThat(found).isSameAs(category);
++	}
++
++	@Test
++	void findByIdThrowsWhenCategoryDoesNotExist() {
++		when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
++
++		assertThatThrownBy(() -> categoryService.findById(99L))
++				.isInstanceOf(ResourceNotFoundException.class)
++				.hasMessage("Category not found with id: 99");
++	}
++
++	@Test
+ 	void createCategorySavesCategoryWhenNameIsUnique() {
+ 		when(categoryRepository.findByName("Programming")).thenReturn(Optional.empty());
+ 
+@@ -65,31 +83,106 @@
+ 		when(categoryRepository.findByName("Testing")).thenReturn(Optional.of(existing));
+ 
+ 		assertThatThrownBy(() -> categoryService.createCategory("Testing", "Duplicate"))
+-				.isInstanceOf(DuplicateCategoryNameException.class);
++				.isInstanceOf(DuplicateCategoryNameException.class)
++				.hasMessage("Category already exists with name: Testing");
++
++		verify(categoryRepository, never()).save(org.mockito.ArgumentMatchers.any());
+ 	}
+ 
+ 	@Test
+ 	void createCategoryRejectsBlankName() {
+ 		assertThatThrownBy(() -> categoryService.createCategory("   ", "Invalid"))
+-				.isInstanceOf(IllegalArgumentException.class);
++				.isInstanceOf(IllegalArgumentException.class)
++				.hasMessage("Category name must not be empty");
+ 	}
+ 
+ 	@Test
+-	void findByIdThrowsWhenCategoryDoesNotExist() {
+-		when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
++	void createCategoryRejectsNullName() {
++		assertThatThrownBy(() -> categoryService.createCategory(null, "Invalid"))
++				.isInstanceOf(IllegalArgumentException.class)
++				.hasMessage("Category name must not be empty");
++	}
+ 
+-		assertThatThrownBy(() -> categoryService.findById(99L))
+-				.isInstanceOf(ResourceNotFoundException.class);
++	@Test
++	void updateCategorySavesCategoryWhenNameIsUnique() {
++		Category category = new Category("Old", "Old description");
++		when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
++		when(categoryRepository.findByName("New")).thenReturn(Optional.empty());
++
++		categoryService.updateCategory(1L, " New ", "New description");
++
++		assertThat(category.getName()).isEqualTo("New");
++		assertThat(category.getDescription()).isEqualTo("New description");
++		verify(categoryRepository).save(category);
++	}
++
++	@Test
++	void updateCategoryAllowsSameExistingCategoryInstance() {
++		Category category = new Category("Same", "Old description");
++		when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
++		when(categoryRepository.findByName("Same")).thenReturn(Optional.of(category));
++
++		categoryService.updateCategory(1L, "Same", "New description");
++
++		assertThat(category.getDescription()).isEqualTo("New description");
++		verify(categoryRepository).save(category);
++	}
++
++	@Test
++	void updateCategoryRejectsDuplicateNameFromAnotherCategory() {
++		Category category = new Category("Current", "Current description");
++		Category duplicate = new Category("Duplicate", "Other description");
++		when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
++		when(categoryRepository.findByName("Duplicate")).thenReturn(Optional.of(duplicate));
++
++		assertThatThrownBy(() -> categoryService.updateCategory(1L, "Duplicate", "Description"))
++				.isInstanceOf(DuplicateCategoryNameException.class)
++				.hasMessage("Category already exists with name: Duplicate");
++
++		verify(categoryRepository, never()).save(category);
+ 	}
+-	
++
++	@Test
++	void updateCategoryRejectsBlankName() {
++		Category category = new Category("Current", "Current description");
++		when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
++
++		assertThatThrownBy(() -> categoryService.updateCategory(1L, " ", "Description"))
++				.isInstanceOf(IllegalArgumentException.class)
++				.hasMessage("Category name must not be empty");
++	}
++
++	@Test
++	void deleteCategoryDeletesExistingUnusedCategory() {
++		when(categoryRepository.existsById(1L)).thenReturn(true);
++		when(studyTaskRepository.existsByCategoryId(1L)).thenReturn(false);
++
++		categoryService.deleteCategory(1L);
++
++		verify(categoryRepository).deleteById(1L);
++	}
++
++	@Test
++	void deleteCategoryRejectsMissingCategory() {
++		when(categoryRepository.existsById(99L)).thenReturn(false);
++
++		assertThatThrownBy(() -> categoryService.deleteCategory(99L))
++				.isInstanceOf(ResourceNotFoundException.class)
++				.hasMessage("Category not found with id: 99");
++
++		verify(studyTaskRepository, never()).existsByCategoryId(99L);
++		verify(categoryRepository, never()).deleteById(99L);
++	}
++
+ 	@Test
+ 	void deleteCategoryRejectsCategoryUsedByTasks() {
+ 		when(categoryRepository.existsById(1L)).thenReturn(true);
+ 		when(studyTaskRepository.existsByCategoryId(1L)).thenReturn(true);
+ 
+ 		assertThatThrownBy(() -> categoryService.deleteCategory(1L))
+-				.isInstanceOf(CategoryInUseException.class);
++				.isInstanceOf(CategoryInUseException.class)
++				.hasMessage("Cannot delete category because it is used by existing tasks.");
+ 
+ 		verify(categoryRepository, never()).deleteById(1L);
+ 	}
+-}
+\ No newline at end of file
++}
+diff -ruN ssp_orig/src/test/java/it/unifi/ast/studyplanner/service/impl/StudyTaskServiceImplTest.java ssp/src/test/java/it/unifi/ast/studyplanner/service/impl/StudyTaskServiceImplTest.java
+--- ssp_orig/src/test/java/it/unifi/ast/studyplanner/service/impl/StudyTaskServiceImplTest.java	2026-07-08 15:50:24.000000000 +0000
++++ ssp/src/test/java/it/unifi/ast/studyplanner/service/impl/StudyTaskServiceImplTest.java	2026-07-09 13:50:06.444879869 +0000
+@@ -2,6 +2,7 @@
+ 
+ import static org.assertj.core.api.Assertions.assertThat;
+ import static org.assertj.core.api.Assertions.assertThatThrownBy;
++import static org.mockito.Mockito.never;
+ import static org.mockito.Mockito.verify;
+ import static org.mockito.Mockito.when;
+ 
+@@ -37,6 +38,35 @@
+ 	private StudyTaskServiceImpl studyTaskService;
+ 
+ 	@Test
++	void findAllReturnsTasks() {
++		StudyTask task = task("Read chapter", Priority.LOW);
++		when(studyTaskRepository.findAll()).thenReturn(List.of(task));
++
++		List<StudyTask> tasks = studyTaskService.findAll();
++
++		assertThat(tasks).containsExactly(task);
++	}
++
++	@Test
++	void findByIdReturnsTaskWhenItExists() {
++		StudyTask task = task("Read chapter", Priority.LOW);
++		when(studyTaskRepository.findById(1L)).thenReturn(Optional.of(task));
++
++		StudyTask found = studyTaskService.findById(1L);
++
++		assertThat(found).isSameAs(task);
++	}
++
++	@Test
++	void findByIdThrowsWhenTaskDoesNotExist() {
++		when(studyTaskRepository.findById(99L)).thenReturn(Optional.empty());
++
++		assertThatThrownBy(() -> studyTaskService.findById(99L))
++				.isInstanceOf(ResourceNotFoundException.class)
++				.hasMessage("Task not found with id: 99");
++	}
++
++	@Test
+ 	void createTaskSavesTaskWhenCategoryExists() {
+ 		Category category = new Category("AST", "Automated Software Testing");
+ 		when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+@@ -45,7 +75,7 @@
+ 				" Write service tests ",
+ 				"Use Mockito for business logic tests",
+ 				Priority.HIGH,
+-				LocalDate.now().plusDays(1),
++				LocalDate.of(2026, 7, 10),
+ 				1L);
+ 
+ 		ArgumentCaptor<StudyTask> captor = ArgumentCaptor.forClass(StudyTask.class);
+@@ -54,7 +84,9 @@
+ 		StudyTask savedTask = captor.getValue();
+ 
+ 		assertThat(savedTask.getTitle()).isEqualTo("Write service tests");
++		assertThat(savedTask.getDescription()).isEqualTo("Use Mockito for business logic tests");
+ 		assertThat(savedTask.getPriority()).isEqualTo(Priority.HIGH);
++		assertThat(savedTask.getDueDate()).isEqualTo(LocalDate.of(2026, 7, 10));
+ 		assertThat(savedTask.getStatus()).isEqualTo(TaskStatus.PENDING);
+ 		assertThat(savedTask.getCategory()).isEqualTo(category);
+ 	}
+@@ -69,7 +101,10 @@
+ 				Priority.MEDIUM,
+ 				LocalDate.now(),
+ 				99L))
+-				.isInstanceOf(ResourceNotFoundException.class);
++				.isInstanceOf(ResourceNotFoundException.class)
++				.hasMessage("Category not found with id: 99");
++
++		verify(studyTaskRepository, never()).save(org.mockito.ArgumentMatchers.any());
+ 	}
+ 
+ 	@Test
+@@ -80,41 +115,160 @@
+ 				Priority.MEDIUM,
+ 				LocalDate.now(),
+ 				1L))
+-				.isInstanceOf(IllegalArgumentException.class);
++				.isInstanceOf(IllegalArgumentException.class)
++				.hasMessage("Task title must not be empty");
+ 	}
+ 
+ 	@Test
+-	void markCompletedChangesTaskStatus() {
+-		Category category = new Category("Testing", "Testing tasks");
+-		StudyTask task = new StudyTask(
+-				"Study Mockito",
+-				"Practice mocking",
++	void createTaskRejectsNullTitle() {
++		assertThatThrownBy(() -> studyTaskService.createTask(
++				null,
++				"Description",
+ 				Priority.MEDIUM,
+ 				LocalDate.now(),
+-				category);
++				1L))
++				.isInstanceOf(IllegalArgumentException.class)
++				.hasMessage("Task title must not be empty");
++	}
+ 
++	@Test
++	void updateTaskUpdatesExistingTask() {
++		StudyTask task = task("Old title", Priority.LOW);
++		Category newCategory = new Category("New category", "New description");
++		LocalDate newDueDate = LocalDate.of(2026, 8, 1);
+ 		when(studyTaskRepository.findById(1L)).thenReturn(Optional.of(task));
++		when(categoryRepository.findById(2L)).thenReturn(Optional.of(newCategory));
+ 
+-		studyTaskService.markCompleted(1L);
++		studyTaskService.updateTask(1L, " New title ", "New description", Priority.HIGH, newDueDate, 2L);
+ 
+-		assertThat(task.getStatus()).isEqualTo(TaskStatus.COMPLETED);
++		assertThat(task.getTitle()).isEqualTo("New title");
++		assertThat(task.getDescription()).isEqualTo("New description");
++		assertThat(task.getPriority()).isEqualTo(Priority.HIGH);
++		assertThat(task.getDueDate()).isEqualTo(newDueDate);
++		assertThat(task.getCategory()).isSameAs(newCategory);
+ 		verify(studyTaskRepository).save(task);
+ 	}
+ 
+ 	@Test
+-	void searchByBlankTitleReturnsAllTasks() {
+-		Category category = new Category("Documentation", "Documentation tasks");
+-		StudyTask task = new StudyTask(
+-				"Prepare report",
+-				"Write project report",
+-				Priority.HIGH,
+-				LocalDate.now(),
+-				category);
++	void updateTaskRejectsMissingTask() {
++		when(studyTaskRepository.findById(99L)).thenReturn(Optional.empty());
++
++		assertThatThrownBy(() -> studyTaskService.updateTask(
++				99L, "Title", "Description", Priority.LOW, LocalDate.now(), 1L))
++				.isInstanceOf(ResourceNotFoundException.class)
++				.hasMessage("Task not found with id: 99");
++
++		verify(categoryRepository, never()).findById(1L);
++	}
++
++	@Test
++	void updateTaskRejectsBlankTitle() {
++		StudyTask task = task("Old title", Priority.LOW);
++		Category category = new Category("AST", "Course");
++		when(studyTaskRepository.findById(1L)).thenReturn(Optional.of(task));
++		when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
++
++		assertThatThrownBy(() -> studyTaskService.updateTask(
++				1L, " ", "Description", Priority.LOW, LocalDate.now(), 1L))
++				.isInstanceOf(IllegalArgumentException.class)
++				.hasMessage("Task title must not be empty");
++	}
++
++	@Test
++	void markCompletedChangesTaskStatus() {
++		StudyTask task = task("Study Mockito", Priority.MEDIUM);
++		when(studyTaskRepository.findById(1L)).thenReturn(Optional.of(task));
++
++		StudyTask saved = studyTaskService.markCompleted(1L);
++
++		assertThat(saved.getStatus()).isEqualTo(TaskStatus.COMPLETED);
++		verify(studyTaskRepository).save(task);
++	}
++
++	@Test
++	void markPendingChangesTaskStatus() {
++		StudyTask task = task("Study Mockito", Priority.MEDIUM);
++		task.markCompleted();
++		when(studyTaskRepository.findById(1L)).thenReturn(Optional.of(task));
++
++		StudyTask saved = studyTaskService.markPending(1L);
++
++		assertThat(saved.getStatus()).isEqualTo(TaskStatus.PENDING);
++		verify(studyTaskRepository).save(task);
++	}
++
++	@Test
++	void findByStatusDelegatesToRepository() {
++		StudyTask task = task("Prepare report", Priority.HIGH);
++		when(studyTaskRepository.findByStatus(TaskStatus.PENDING)).thenReturn(List.of(task));
++
++		List<StudyTask> tasks = studyTaskService.findByStatus(TaskStatus.PENDING);
++
++		assertThat(tasks).containsExactly(task);
++	}
++
++	@Test
++	void findByCategoryDelegatesToRepository() {
++		StudyTask task = task("Prepare report", Priority.HIGH);
++		when(studyTaskRepository.findByCategoryId(1L)).thenReturn(List.of(task));
++
++		List<StudyTask> tasks = studyTaskService.findByCategory(1L);
++
++		assertThat(tasks).containsExactly(task);
++	}
++
++	@Test
++	void searchByTitleDelegatesToRepositoryWithTrimmedTitle() {
++		StudyTask task = task("Prepare report", Priority.HIGH);
++		when(studyTaskRepository.findByTitleContainingIgnoreCase("report")).thenReturn(List.of(task));
++
++		List<StudyTask> results = studyTaskService.searchByTitle(" report ");
++
++		assertThat(results).containsExactly(task);
++	}
+ 
++	@Test
++	void searchByBlankTitleReturnsAllTasks() {
++		StudyTask task = task("Prepare report", Priority.HIGH);
+ 		when(studyTaskRepository.findAll()).thenReturn(List.of(task));
+ 
+ 		List<StudyTask> results = studyTaskService.searchByTitle(" ");
+ 
+ 		assertThat(results).containsExactly(task);
+ 	}
+-}
+\ No newline at end of file
++
++	@Test
++	void searchByNullTitleReturnsAllTasks() {
++		StudyTask task = task("Prepare report", Priority.HIGH);
++		when(studyTaskRepository.findAll()).thenReturn(List.of(task));
++
++		List<StudyTask> results = studyTaskService.searchByTitle(null);
++
++		assertThat(results).containsExactly(task);
++	}
++
++	@Test
++	void deleteTaskDeletesExistingTask() {
++		when(studyTaskRepository.existsById(1L)).thenReturn(true);
++
++		studyTaskService.deleteTask(1L);
++
++		verify(studyTaskRepository).deleteById(1L);
++	}
++
++	@Test
++	void deleteTaskRejectsMissingTask() {
++		when(studyTaskRepository.existsById(99L)).thenReturn(false);
++
++		assertThatThrownBy(() -> studyTaskService.deleteTask(99L))
++				.isInstanceOf(ResourceNotFoundException.class)
++				.hasMessage("Task not found with id: 99");
++
++		verify(studyTaskRepository, never()).deleteById(99L);
++	}
++
++	private StudyTask task(String title, Priority priority) {
++		Category category = new Category("AST", "Automated Software Testing");
++		return new StudyTask(title, "Description", priority, LocalDate.of(2026, 7, 10), category);
++	}
++}
