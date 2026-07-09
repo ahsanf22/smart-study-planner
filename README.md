@@ -1,5 +1,5 @@
 [![Maven CI](https://github.com/ahsanf22/smart-study-planner/actions/workflows/maven.yml/badge.svg)](https://github.com/ahsanf22/smart-study-planner/actions/workflows/maven.yml)
-[![Coverage Status](https://coveralls.io/repos/github/ahsanf22/smart-study-planner/badge.svg)](https://coveralls.io/github/ahsanf22/smart-study-planner)
+[![Coverage Status](https://coveralls.io/repos/github/ahsanf22/smart-study-planner/badge.svg?branch=main)](https://coveralls.io/github/ahsanf22/smart-study-planner?branch=main)
 
 # Smart Study Planner
 
