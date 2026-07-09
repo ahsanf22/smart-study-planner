@@ -27,4 +27,11 @@ jobs:
       - name: Run SonarQube Cloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.1.6619:sonar
+        run: |
+          ./mvnw org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.1.6619:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=ahsanf22 \
+            -Dsonar.projectKey=ahsanf22_smart-study-planner \
+            -Dsonar.projectName="Smart Study Planner" \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.token=$SONAR_TOKEN
