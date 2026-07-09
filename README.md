@@ -1,3 +1,6 @@
+[![Maven CI](https://github.com/ahsanf22/smart-study-planner/actions/workflows/maven.yml/badge.svg)](https://github.com/ahsanf22/smart-study-planner/actions/workflows/maven.yml)
+[![Coverage Status](https://coveralls.io/repos/github/ahsanf22/smart-study-planner/badge.svg)](https://coveralls.io/github/ahsanf22/smart-study-planner)
+
 # Smart Study Planner
 
 Smart Study Planner is a Spring Boot web application developed for the Automated Software Testing project.
