@@ -109,35 +109,29 @@
 			</plugin>
 
 			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.15</version>
-				<configuration>
-					<excludes>
-						<exclude>**/SmartStudyPlannerApplication*</exclude>
-						<exclude>**/controller/**</exclude>
-						<exclude>**/dto/**</exclude>
-						<exclude>**/entity/**</exclude>
-						<exclude>**/exception/**</exclude>
-						<exclude>**/repository/**</exclude>
-					</excludes>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-
-					<execution>
-						<id>report</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+	<groupId>org.jacoco</groupId>
+	<artifactId>jacoco-maven-plugin</artifactId>
+	<version>0.8.15</version>
+	<executions>
+		<execution>
+			<goals>
+				<goal>prepare-agent</goal>
+			</goals>
+		</execution>
+		<execution>
+			<id>report</id>
+			<phase>verify</phase>
+			<goals>
+				<goal>report</goal>
+			</goals>
+			<configuration>
+				<includes>
+					<include>it/unifi/ast/studyplanner/service/impl/*</include>
+				</includes>
+			</configuration>
+		</execution>
+	</executions>
+</plugin>
 		</plugins>
 	</build>
 
