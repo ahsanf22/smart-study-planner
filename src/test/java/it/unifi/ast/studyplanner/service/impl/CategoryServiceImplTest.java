@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+
+import it.unifi.ast.studyplanner.exception.CategoryInUseException;
+import it.unifi.ast.studyplanner.repository.StudyTaskRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +29,9 @@ class CategoryServiceImplTest {
 
 	@Mock
 	private CategoryRepository categoryRepository;
+	
+	@Mock
+	private StudyTaskRepository studyTaskRepository;
 
 	@InjectMocks
 	private CategoryServiceImpl categoryService;
@@ -73,5 +80,16 @@ class CategoryServiceImplTest {
 
 		assertThatThrownBy(() -> categoryService.findById(99L))
 				.isInstanceOf(ResourceNotFoundException.class);
+	}
+	
+	@Test
+	void deleteCategoryRejectsCategoryUsedByTasks() {
+		when(categoryRepository.existsById(1L)).thenReturn(true);
+		when(studyTaskRepository.existsByCategoryId(1L)).thenReturn(true);
+
+		assertThatThrownBy(() -> categoryService.deleteCategory(1L))
+				.isInstanceOf(CategoryInUseException.class);
+
+		verify(categoryRepository, never()).deleteById(1L);
 	}
 }

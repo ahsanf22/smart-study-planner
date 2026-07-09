@@ -21,6 +21,8 @@
 			<a class="button" th:href="@{/categories/new}">Create Category</a>
 		</div>
 
+		<div class="alert error-alert" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
 		<table class="table">
 			<thead>
 				<tr>

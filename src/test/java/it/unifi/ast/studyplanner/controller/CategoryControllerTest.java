@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import it.unifi.ast.studyplanner.exception.DuplicateCategoryNameException;
 
 import java.util.List;
 
@@ -65,5 +66,19 @@ class CategoryControllerTest {
 				.param("description", "Invalid category"))
 				.andExpect(status().isOk())
 				.andExpect(view().name("categories/form"));
+	}
+	
+	@Test
+	void createCategoryWithDuplicateNameReturnsFormWithError() throws Exception {
+		when(categoryService.createCategory("Automated Software Testing", "Duplicate category"))
+				.thenThrow(new DuplicateCategoryNameException(
+						"Category already exists with name: Automated Software Testing"));
+
+		mockMvc.perform(post("/categories")
+				.param("name", "Automated Software Testing")
+				.param("description", "Duplicate category"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("categories/form"))
+				.andExpect(model().attributeHasFieldErrors("categoryForm", "name"));
 	}
 }

@@ -4,12 +4,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import it.unifi.ast.studyplanner.exception.CategoryInUseException;
 import it.unifi.ast.studyplanner.dto.CategoryForm;
 import it.unifi.ast.studyplanner.entity.Category;
+import it.unifi.ast.studyplanner.exception.DuplicateCategoryNameException;
 import it.unifi.ast.studyplanner.service.CategoryService;
 import jakarta.validation.Valid;
 
@@ -36,13 +40,19 @@ public class CategoryController {
 	}
 
 	@PostMapping
-	public String createCategory(@Valid CategoryForm categoryForm, BindingResult bindingResult) {
+	public String createCategory(@Valid @ModelAttribute("categoryForm") CategoryForm categoryForm,
+			BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
 			return "categories/form";
 		}
 
-		categoryService.createCategory(categoryForm.getName(), categoryForm.getDescription());
-		return "redirect:/categories";
+		try {
+			categoryService.createCategory(categoryForm.getName(), categoryForm.getDescription());
+			return "redirect:/categories";
+		} catch (DuplicateCategoryNameException exception) {
+			bindingResult.rejectValue("name", "duplicate", exception.getMessage());
+			return "categories/form";
+		}
 	}
 
 	@GetMapping("/{id}/edit")
@@ -56,20 +66,33 @@ public class CategoryController {
 	}
 
 	@PostMapping("/{id}")
-	public String updateCategory(@PathVariable Long id, @Valid CategoryForm categoryForm,
-			BindingResult bindingResult, Model model) {
+	public String updateCategory(@PathVariable Long id,
+			@Valid @ModelAttribute("categoryForm") CategoryForm categoryForm,
+			BindingResult bindingResult,
+			Model model) {
 		if (bindingResult.hasErrors()) {
 			model.addAttribute("categoryId", id);
 			return "categories/form";
 		}
 
-		categoryService.updateCategory(id, categoryForm.getName(), categoryForm.getDescription());
-		return "redirect:/categories";
+		try {
+			categoryService.updateCategory(id, categoryForm.getName(), categoryForm.getDescription());
+			return "redirect:/categories";
+		} catch (DuplicateCategoryNameException exception) {
+			model.addAttribute("categoryId", id);
+			bindingResult.rejectValue("name", "duplicate", exception.getMessage());
+			return "categories/form";
+		}
 	}
 
 	@PostMapping("/{id}/delete")
-	public String deleteCategory(@PathVariable Long id) {
-		categoryService.deleteCategory(id);
+	public String deleteCategory(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+		try {
+			categoryService.deleteCategory(id);
+		} catch (CategoryInUseException exception) {
+			redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+		}
+
 		return "redirect:/categories";
 	}
 }

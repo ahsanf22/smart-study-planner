@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import it.unifi.ast.studyplanner.entity.Category;
+import it.unifi.ast.studyplanner.exception.CategoryInUseException;
 import it.unifi.ast.studyplanner.exception.DuplicateCategoryNameException;
 import it.unifi.ast.studyplanner.exception.ResourceNotFoundException;
 import it.unifi.ast.studyplanner.repository.CategoryRepository;
+import it.unifi.ast.studyplanner.repository.StudyTaskRepository;
 import it.unifi.ast.studyplanner.service.CategoryService;
 
 @Service
@@ -17,9 +19,11 @@ import it.unifi.ast.studyplanner.service.CategoryService;
 public class CategoryServiceImpl implements CategoryService {
 
 	private final CategoryRepository categoryRepository;
+	private final StudyTaskRepository studyTaskRepository;
 
-	public CategoryServiceImpl(CategoryRepository categoryRepository) {
+	public CategoryServiceImpl(CategoryRepository categoryRepository, StudyTaskRepository studyTaskRepository) {
 		this.categoryRepository = categoryRepository;
+		this.studyTaskRepository = studyTaskRepository;
 	}
 
 	@Override
@@ -67,6 +71,10 @@ public class CategoryServiceImpl implements CategoryService {
 	public void deleteCategory(Long id) {
 		if (!categoryRepository.existsById(id)) {
 			throw new ResourceNotFoundException("Category not found with id: " + id);
+		}
+
+		if (studyTaskRepository.existsByCategoryId(id)) {
+			throw new CategoryInUseException("Cannot delete category because it is used by existing tasks.");
 		}
 
 		categoryRepository.deleteById(id);
